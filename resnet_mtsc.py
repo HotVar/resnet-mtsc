@@ -2,75 +2,76 @@ import torch.nn as nn
 import torch
 
 class Resnet(nn.Module):
-    def __init__(self, input_size, n_feature_maps):
+    def __init__(self, input_size, n_channels):
         super().__init__()
         b, c, s = input_size
 
         self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
 
         # residual block 1
         self.conv1 = nn.Conv1d(in_channels=c,
-                               out_channels=n_feature_maps,
+                               out_channels=n_channels,
                                kernel_size=8,
                                padding_mode='replicate')
-        self.bn1 = nn.BatchNorm1d(n_feature_maps)
-        self.conv2 = nn.Conv1d(in_channels=n_feature_maps,
-                               out_channels=n_feature_maps,
+        self.bn1 = nn.BatchNorm1d(n_channels)
+        self.conv2 = nn.Conv1d(in_channels=n_channels,
+                               out_channels=n_channels,
                                kernel_size=5,
                                padding_mode='replicate')
-        self.bn2 = nn.BatchNorm1d(n_feature_maps)
-        self.conv3 = nn.Conv1d(in_channels=n_feature_maps,
-                               out_channels=n_feature_maps,
+        self.bn2 = nn.BatchNorm1d(n_channels)
+        self.conv3 = nn.Conv1d(in_channels=n_channels,
+                               out_channels=n_channels,
                                kernel_size=3,
                                padding_mode='replicate')
-        self.bn3 = nn.BatchNorm1d(n_feature_maps)
+        self.bn3 = nn.BatchNorm1d(n_channels)
         self.expand1 = nn.Conv1d(in_channels=c,
-                                 out_channels=n_feature_maps,
+                                 out_channels=n_channels,
                                  kernel_size=1,
                                  padding_mode='replicate')
         # residual block 2
-        self.conv4 = nn.Conv1d(in_channels=n_feature_maps,
-                               out_channels=n_feature_maps*2,
+        self.conv4 = nn.Conv1d(in_channels=n_channels,
+                               out_channels=n_channels*2,
                                kernel_size=8,
                                padding_mode='replicate')
-        self.bn4 = nn.BatchNorm1d(n_feature_maps*2)
-        self.conv5 = nn.Conv1d(in_channels=n_feature_maps*2,
-                               out_channels=n_feature_maps*2,
+        self.bn4 = nn.BatchNorm1d(n_channels*2)
+        self.conv5 = nn.Conv1d(in_channels=n_channels*2,
+                               out_channels=n_channels*2,
                                kernel_size=5,
                                padding_mode='replicate')
-        self.bn5 = nn.BatchNorm1d(n_feature_maps*2)
-        self.conv6 = nn.Conv1d(in_channels=n_feature_maps*2,
-                               out_channels=n_feature_maps*2,
+        self.bn5 = nn.BatchNorm1d(n_channels*2)
+        self.conv6 = nn.Conv1d(in_channels=n_channels*2,
+                               out_channels=n_channels*2,
                                kernel_size=3,
                                padding_mode='replicate')
-        self.bn6 = nn.BatchNorm1d(n_feature_maps*2)
-        self.expand2 = nn.Conv1d(in_channels=n_feature_maps,
-                                 out_channels=n_feature_maps*2,
+        self.bn6 = nn.BatchNorm1d(n_channels*2)
+        self.expand2 = nn.Conv1d(in_channels=n_channels,
+                                 out_channels=n_channels*2,
                                  kernel_size=1,
                                  padding_mode='replicate')
 
         # residual block 3
-        self.conv7 = nn.Conv1d(in_channels=n_feature_maps*2,
-                               out_channels=n_feature_maps*2,
+        self.conv7 = nn.Conv1d(in_channels=n_channels*2,
+                               out_channels=n_channels*2,
                                kernel_size=8,
                                padding_mode='replicate')
-        self.bn7 = nn.BatchNorm1d(n_feature_maps*2)
-        self.conv8 = nn.Conv1d(in_channels=n_feature_maps*2,
-                               out_channels=n_feature_maps*2,
+        self.bn7 = nn.BatchNorm1d(n_channels*2)
+        self.conv8 = nn.Conv1d(in_channels=n_channels*2,
+                               out_channels=n_channels*2,
                                kernel_size=5,
                                padding_mode='replicate')
-        self.bn8 = nn.BatchNorm1d(n_feature_maps*2)
-        self.conv9 = nn.Conv1d(in_channels=n_feature_maps*2,
-                               out_channels=n_feature_maps*2,
+        self.bn8 = nn.BatchNorm1d(n_channels*2)
+        self.conv9 = nn.Conv1d(in_channels=n_channels*2,
+                               out_channels=n_channels*2,
                                kernel_size=3,
                                padding_mode='replicate')
-        self.bn9 = nn.BatchNorm1d(n_feature_maps*2)
+        self.bn9 = nn.BatchNorm1d(n_channels*2)
 
         # global average pooling, fully connected layer
         self.gap = nn.AdaptiveAvgPool1d(1)
-        self.dense = nn.Linear(in_features=n_feature_maps*2,
+        self.dense = nn.Linear(in_features=n_channels*2,
                                out_features=1)
+        self.sigmoid = nn.Sigmoid()
+
 
     def forward(self, seq):
         shortcut_y = seq
@@ -84,7 +85,7 @@ class Resnet(nn.Module):
         y = self.relu(y)
         y = self.conv3(y)
         y = self.bn3(y)
-        shortcut_y = self.expand1(shortcut_y)   # (b, c, s) -> (b, n_feature_maps, s))
+        shortcut_y = self.expand1(shortcut_y)   # (b, c, s) -> (b, n_channels, s))
         shortcut_y = self.bn(shortcut_y)
         y = torch.add(shortcut_y, y)
         y = self.relu(y)
